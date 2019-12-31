@@ -18,19 +18,29 @@
 
 @implementation ViewController {
     NSMutableDictionary *_testObj;
+    int _a;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    _testObj = [[NSMutableDictionary alloc] init];
-    self.view.backgroundColor = [UIColor whiteColor];
-    self.model = [[TestModel alloc] init];
-    __weak typeof(self) weakSelf = self;
-    [self.model setBlock:^{
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        [strongSelf->_testObj removeAllObjects];
-//        [strongSelf.testObj removeAllObjects];
-    }];
+    
+    NSLog(@"self指向：%p - self本身：%p", self, &self);
+    __weak __typeof(self) weakSelf = self;
+    NSLog(@"weakself指向：%p - weakSelf本身：%p", weakSelf, &weakSelf);
+    TestView *test = [[TestView alloc] initWithFrame:CGRectMake(100, 100, 100, 100)];
+    test.backgroundColor = [UIColor cyanColor];
+    test.handler = ^(NSString *str) {
+        __strong __typeof(weakSelf) strongSelf = weakSelf;
+        NSLog(@"Block内部，weakSelf指向：%p - weakSelf本身：%p", weakSelf, &weakSelf);
+        NSLog(@"strongSelf指向：%p - strongSelf本身：%p", strongSelf, &strongSelf);
+        NSLog(@"%d", strongSelf->_a);
+    };
+    [self.view addSubview:test];
+
+    //想办法让ViewController被释放掉
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [UIApplication sharedApplication].keyWindow.rootViewController = [[UIViewController alloc] init];
+    });
 }
 
 @end
